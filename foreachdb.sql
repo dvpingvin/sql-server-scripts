@@ -8,9 +8,9 @@ DROP TABLE IF EXISTS #t
 CREATE TABLE #t ([db_name] SYSNAME, [result] NVARCHAR(MAX) )
 INSERT INTO #t ([db_name]) SELECT [name] FROM sys.databases WHERE database_id > 4;
 
-WHILE EXISTS( select * from #t where [result] is null)
+WHILE EXISTS(SELECT [result] FROM #t WHERE [result] IS NULL)
 BEGIN
-	SELECT TOP 1 @db_name = [db_name]  FROM #t WHERE [result] is null
+	SELECT TOP 1 @db_name = [db_name]  FROM #t WHERE [result] IS NULL
 
 	SELECT @query = 'USE ' + QUOTENAME(@db_name) + N';
 	SELECT DB_NAME(); -- Replace with your query
