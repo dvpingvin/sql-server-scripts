@@ -1,0 +1,78 @@
+DROP TABLE IF EXISTS #PerfCntrs;
+GO
+CREATE TABLE #PerfCntrs
+(
+collected_time DATETIME2(7) NOT NULL DEFAULT SYSDATETIME(),
+object_name SYSNAME NOT NULL,
+counter_name SYSNAME NOT NULL,
+instance_name SYSNAME NOT NULL,
+cntr_value BIGINT NOT NULL,
+PRIMARY KEY (object_name, counter_name, instance_name)
+);
+;WITH Counters(obj_name, ctr_name)
+AS
+(
+SELECT C.obj_name, C.ctr_name
+FROM
+(
+VALUES
+('SQLServer:Buffer Manager','Checkpoint pages/sec')
+,('SQLServer:Buffer Manager','Background writer pages/sec')
+,('SQLServer:Buffer Manager','Lazy writes/sec')
+,('SQLServer:Buffer Manager','Page reads/sec')
+,('SQLServer:Buffer Manager','Page writes/sec')
+,('SQLServer:Buffer Manager','Readahead pages/sec')
+,('SQLServer:Databases','Log Flushes/sec') -- For all DBs
+,('SQLServer:Databases','Log Bytes Flushed/sec') -- For all DBs
+,('SQLServer:Databases','Log Flush Write Time (ms)') -- For all DBs
+,('SQLServer:Databases','Transactions/sec') -- For all DBs
+,('SQLServer:SQL Statistics','Batch Requests/sec')
+) C(obj_name, ctr_name)
+)
+INSERT INTO #PerfCntrs(object_name,counter_name,instance_name,cntr_value)
+SELECT
+pc.object_name, pc.counter_name, pc.instance_name, pc.cntr_value
+FROM
+sys.dm_os_performance_counters pc WITH (NOLOCK) JOIN Counters c ON
+pc.counter_name = c.ctr_name AND pc.object_name = c.obj_name;
+WAITFOR DELAY '00:00:01.000';
+;WITH Counters(obj_name, ctr_name)
+AS
+(
+SELECT C.obj_name, C.ctr_name
+FROM
+(
+VALUES
+('SQLServer:Buffer Manager','Checkpoint pages/sec')
+,('SQLServer:Buffer Manager','Background writer pages/sec')
+,('SQLServer:Buffer Manager','Lazy writes/sec')
+,('SQLServer:Buffer Manager','Page reads/sec')
+,('SQLServer:Buffer Manager','Page writes/sec')
+,('SQLServer:Buffer Manager','Readahead pages/sec')
+,('SQLServer:Databases','Log Flushes/sec') -- For all DBs
+,('SQLServer:Databases','Log Bytes Flushed/sec') -- For all DBs
+,('SQLServer:Databases','Log Flush Write Time (ms)') -- For all DBs
+,('SQLServer:Databases','Transactions/sec') -- For all DBs
+,('SQLServer:SQL Statistics','Batch Requests/sec')
+) C(obj_name, ctr_name)
+)
+SELECT
+pc.object_name, pc.counter_name, pc.instance_name
+,CASE pc.cntr_type
+WHEN 272696576 THEN
+(pc.cntr_value - h.cntr_value) * 1000 /
+DATEDIFF(MILLISECOND,h.collected_time,SYSDATETIME())
+WHEN 65792 THEN
+pc.cntr_value
+ELSE NULL
+END as cntr_value
+FROM
+sys.dm_os_performance_counters pc WITH (NOLOCK) JOIN Counters c ON
+pc.counter_name = c.ctr_name AND pc.object_name = c.obj_name
+JOIN #PerfCntrs h ON
+pc.object_name = h.object_name AND
+pc.counter_name = h.counter_name AND
+pc.instance_name = h.instance_name
+ORDER BY
+pc.object_name, pc.counter_name, pc.instance_name
+OPTION (RECOMPILE);
