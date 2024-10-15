@@ -16,17 +16,17 @@ SELECT C.obj_name, C.ctr_name
 FROM
 (
 VALUES
-('SQLServer:Buffer Manager','Checkpoint pages/sec')
-,('SQLServer:Buffer Manager','Background writer pages/sec')
-,('SQLServer:Buffer Manager','Lazy writes/sec')
-,('SQLServer:Buffer Manager','Page reads/sec')
-,('SQLServer:Buffer Manager','Page writes/sec')
-,('SQLServer:Buffer Manager','Readahead pages/sec')
-,('SQLServer:Databases','Log Flushes/sec') -- For all DBs
-,('SQLServer:Databases','Log Bytes Flushed/sec') -- For all DBs
-,('SQLServer:Databases','Log Flush Write Time (ms)') -- For all DBs
-,('SQLServer:Databases','Transactions/sec') -- For all DBs
-,('SQLServer:SQL Statistics','Batch Requests/sec')
+('SQLServer:Buffer Manager','Checkpoint pages/sec') -- Количество страниц, сброшенных на диск операцией контрольной точки или другой операцией, требующей удаления всех загрязненных страниц.
+,('SQLServer:Buffer Manager','Background writer pages/sec') -- Количество страниц, сброшенных на диск для обеспечения соблюдения настроек интервала восстановления (по умолчанию ~1 минута).
+,('SQLServer:Buffer Manager','Lazy writes/sec') -- Количиество старых буфферов (=страниц),  сброшенных на диск процессом отложенной записи
+,('SQLServer:Buffer Manager','Page reads/sec') -- Количество физических операций чтения
+,('SQLServer:Buffer Manager','Page writes/sec') -- Количество физических операций записи
+,('SQLServer:Buffer Manager','Readahead pages/sec') -- Число страниц, прочитанных процессом упреждающего чтения (загрузка страниц которые не были запрошены, но могут понадобиться)
+,('SQLServer:Databases','Log Flushes/sec') -- For all DBs -- Число запросов на запись в журнал транзакций.
+,('SQLServer:Databases','Log Bytes Flushed/sec') -- For all DBs -- Объем записи в журнал транзакций.
+,('SQLServer:Databases','Log Flush Write Time (ms)') -- For all DBs -- Время (задержка) записи в журнал транзакций.
+,('SQLServer:Databases','Transactions/sec') -- For all DBs -- Число транзакций
+,('SQLServer:SQL Statistics','Batch Requests/sec') -- Число запросов
 ) C(obj_name, ctr_name)
 )
 INSERT INTO #PerfCntrs(object_name,counter_name,instance_name,cntr_value)
