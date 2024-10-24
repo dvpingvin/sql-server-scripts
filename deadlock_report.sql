@@ -5,7 +5,9 @@ FROM sys.dm_xe_sessions xs WITH (NOLOCK)
 JOIN sys.dm_xe_session_targets xt WITH (NOLOCK) ON xs.address = xt.event_session_address
 WHERE xt.target_name = 'event_file' AND xs.name = N'system_health'
 
-SELECT DATEADD(hour, 3, [timestamp_utc]) AS [timestamp_msk], CONVERT(xml, event_data).query('/event/data/value/child::*') AS [xml_deadlock_report]
+SELECT DATEADD(hour, 3, [timestamp_utc]) AS [timestamp_msk]
+, CONVERT(xml, event_data).query('/event/data/value/child::*') AS [xml_deadlock_report]
+, CONVERT(xml, event_data).value('(/event/data/value/deadlock/process-list/process/@currentdbname)[1]', 'NVARCHAR(128)') AS [db_name]
 FROM sys.fn_xe_file_target_read_file (@event_file_path, null, null, null)
 WHERE object_name = 'xml_deadlock_report'
 /*Чтобы посмотреть отчёт о взаимных блокировках (deadlocks), XML-файлы из [xml_deadlock_report] нужно сохранить как файлы с расширением .xdl*/
