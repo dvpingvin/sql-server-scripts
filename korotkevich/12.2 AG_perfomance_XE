@@ -1,0 +1,46 @@
+/****************************************************************************/
+/*         SQL Server Advanced Troubleshooting and Performance Tuning       */
+/*         O'Reilly, 2022. ISBN-13: 978-1098101923 ISBN-10: 1098101928      */
+/*                                                                          */
+/*                  Written by Dmitri V. Korotkevitch                       */
+/*                      https://aboutsqlserver.com                          */
+/*                        dk@aboutsqlserver.com                             */
+/****************************************************************************/
+/* Не оставлять включенными! Использовать только для устрания неполадок!    */
+/* Не указано событие ucs_connection_send_msg, оно создает много шума       */
+/* Значение log_block_id в событиях                                         */
+/* hadr_send_harden_lsn_message, hadr_receive_harden_lsn_message и          */
+/* hadr_lsn_send_complete будет больше, чем в предыдущих.                   */
+/* Это связано с тем, как XE собирают данные.                               */
+/* Разница зависит от нагрузки, не должна превышать 120.                    */
+/****************************************************************************/
+
+/****************************************************************************/
+/* Этот код нужно запускатьна Primary!                                      */
+/****************************************************************************/
+-- Создать на первичном узле
+CREATE EVENT SESSION [AlwaysOn_Tracing_Primary] ON SERVER
+ADD EVENT sqlserver.hadr_capture_log_block,
+ADD EVENT sqlserver.hadr_db_commit_mgr_harden,
+ADD EVENT sqlserver.hadr_db_commit_mgr_harden_still_waiting,
+ADD EVENT sqlserver.hadr_log_block_compression,
+ADD EVENT sqlserver.hadr_log_block_send_complete,
+ADD EVENT sqlserver.hadr_receive_harden_lsn_message,
+ADD EVENT sqlserver.log_flush_complete,
+ADD EVENT sqlserver.log_flush_start
+ADD TARGET package0.ring_buffer(SET max_events_limit=(0),max_memory=(16384));
+GO
+
+/****************************************************************************/
+/* Этот код нужно запускать на Secondary!                                   */
+/****************************************************************************/
+-- Создать на вторичном узле
+CREATE EVENT SESSION [AlwaysOn_Tracing_Secondary] ON SERVER
+ADD EVENT sqlserver.hadr_apply_log_block,
+ADD EVENT sqlserver.hadr_log_block_decompression,
+ADD EVENT sqlserver.hadr_lsn_send_complete,
+ADD EVENT sqlserver.hadr_send_harden_lsn_message,
+ADD EVENT sqlserver.hadr_transport_receive_log_block_message,
+ADD EVENT sqlserver.log_flush_complete,
+ADD EVENT sqlserver.log_flush_start
+ADD TARGET package0.ring_buffer(SET max_events_limit=(0),max_memory=(16384));
