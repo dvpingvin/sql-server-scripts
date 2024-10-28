@@ -7,7 +7,7 @@
 /*                        dk@aboutsqlserver.com                             */
 /****************************************************************************/
 /* Этот код нужно запускатьна Primary.                                      */
-/* Очереди log_send и redo должны быть как можно короче.                    */
+/* Очереди log_send и redo должны быть как можно короче,                    */
 /* commit_latency должен быть как можно короче.                            */
 /* Этот код работает в версиях SQL Server 2014 и новее.                     */
 /* Скрипт для SQL Server 2012 есть в сопроводительных материалах к книге.   */
@@ -36,6 +36,7 @@ drs.low_water_mark_for_ghosts,0
 ,0
 ,DATEDIFF(ms,drs.last_commit_time,pri.last_commit_time)
 ) AS commit_latency
+-- , drs.secondary_lag_seconds
 FROM
 sys.availability_groups ag WITH (NOLOCK)
 JOIN sys.availability_replicas ar WITH (NOLOCK) ON
