@@ -6,6 +6,11 @@
 /*                      https://aboutsqlserver.com                          */
 /*                        dk@aboutsqlserver.com                             */
 /****************************************************************************/
+-- =============================================
+-- Improvements: DROP TABLE IF EXISTS #SpaceUsed; WHERE m.type = 1
+-- Author: Sergey Izosimov
+-- Improvements date: 02.11.2024
+-- =============================================
 
 DROP TABLE IF EXISTS #SpaceUsed
 CREATE TABLE #SpaceUsed
@@ -43,5 +48,6 @@ d.database_id = m.database_id
 LEFT OUTER JOIN #SpaceUsed s ON
 s.database_id = m.database_id AND
 s.file_id = m.file_id
+WHERE m.type = 1
 ORDER BY
 d.database_id;
