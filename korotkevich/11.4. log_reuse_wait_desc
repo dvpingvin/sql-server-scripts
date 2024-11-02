@@ -29,19 +29,17 @@ WHERE type = 1;';
 SELECT
 d.database_id, d.name, d.recovery_model_desc
 ,d.state_desc, d.log_reuse_wait_desc, m.physical_name
---,[size] AS [size in 8k pages]
-,CAST (s.space_used  AS VARCHAR (10)) + ' MB' AS [Space Used]
-,CAST (CAST ([size] / 131072.0 AS DECIMAL(17,2))  AS VARCHAR (10)) + ' GB' AS [Current size]
-,CASE [max_size]
-WHEN -1 THEN 'Unlimited'
-WHEN 268435456 THEN '2 TB Limited'
-ELSE CAST (CAST ([max_size] / 131072.0 AS DECIMAL(17,2))  AS VARCHAR (10)) + ' GB'
-END AS [Max size]
-,[is_percent_growth] AS [Is Percent Growth]
-,CASE [is_percent_growth]
-WHEN 0 THEN CAST ([growth]*8/1024 AS VARCHAR(10)) + ' MB'
-WHEN 1 THEN CAST ([growth] AS VARCHAR(10)) + ' %'
-END AS [Growth]
+,m.is_percent_growth
+,IIF(m.is_percent_growth = 1
+,m.growth
+,CONVERT(DECIMAL(15,3),m.growth / 128.0)
+) AS [Growth (MB or %)]
+,CONVERT(DECIMAL(15,3),m.size / 128.0) AS [Size (MB)]
+,IIF(m.max_size = -1
+,-1
+,CONVERT(DECIMAL(15,3),m.max_size / 128.0)
+) AS [Max Size(MB)]
+,s.space_used as [Space Used(MB)]
 FROM
 sys.databases d WITH (NOLOCK)
 JOIN sys.master_files m WITH (NOLOCK) ON
@@ -49,6 +47,6 @@ d.database_id = m.database_id
 LEFT OUTER JOIN #SpaceUsed s ON
 s.database_id = m.database_id AND
 s.file_id = m.file_id
-WHERE m.type = 1
+WHERE type = 1
 ORDER BY
 d.database_id;
