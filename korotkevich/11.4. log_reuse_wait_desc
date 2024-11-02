@@ -7,6 +7,7 @@
 /*                        dk@aboutsqlserver.com                             */
 /****************************************************************************/
 
+DROP TABLE IF EXISTS #SpaceUsed
 CREATE TABLE #SpaceUsed
 (
 database_id SMALLINT NOT NULL,
@@ -18,7 +19,7 @@ EXEC master..sp_MSforeachdb
 N'USE[?];
 INSERT INTO #SpaceUsed(database_id, file_id, space_used)
 SELECT DB_ID(''?''), file_id,
-(size – CONVERT(INT,FILEPROPERTY(name, ''SpaceUsed''))) / 128.
+(size - CONVERT(INT,FILEPROPERTY(name, ''SpaceUsed''))) / 128.
 FROM sys.database_files
 WHERE type = 1;';
 SELECT
