@@ -1,3 +1,8 @@
+-- =============================================
+-- Improvements Author: Sergey Izosimov
+-- Improvements date: 02.11.2024
+-- =============================================
+
 USE [master]
 GO
 
