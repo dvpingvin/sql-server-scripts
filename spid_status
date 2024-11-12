@@ -1,0 +1,25 @@
+SELECT
+[SPID] = er.session_id,
+[Status] = ses.status,
+[Login] = ses.login_name,
+[Host] = ses.host_name,
+[Blk By] = er.blocking_session_id,
+[DB Name] = DB_NAME(er.database_id),
+[CommandT ype] = er.command,
+[SQL Statement] = st.text,
+[Object Name] = OBJECT_NAME(st.objectid),
+[Elapsed (ms)] = er.total_elapsed_time,
+[CPU Time] = er.cpu_time,
+[IO Reads] = er.logical_reads + er.reads,
+[IO Writes] = er.writes,
+[Last Wait Type] = er.last_wait_type,
+[StartTime] = er.start_time,
+[Protocol] = con.net_transport,
+[Connection Writes] = con.num_writes,
+[Connection Reads] = con.num_reads,
+[Client Address] = con.client_net_address,
+[Authentication] = con.auth_scheme
+FROM sys.dm_exec_requests er
+OUTER APPLY sys.dm_exec_sql_text(er.sql_handle) st
+LEFT JOIN sys.dm_exec_sessions ses ON ses.session_id = er.session_id
+LEFT JOIN sys.dm_exec_connections con ON con.session_id = ses.session_id;
