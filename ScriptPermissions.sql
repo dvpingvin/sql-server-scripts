@@ -10,19 +10,21 @@ DECLARE @Collation NVARCHAR(128) = 'DATABASE_DEFAULT';
 -- Проверка и вывод инструкции
 IF @LoginName = '<YourLoginName>'
 BEGIN
-PRINT '####################################################################';
-PRINT '# #';
-PRINT '# ВНИМАНИЕ: Вы не указали имя логина для анализа! #';
-PRINT '# #';
-PRINT '# Пожалуйста, замените "<YourLoginName>" в строке: #';
-PRINT '# DECLARE @LoginName NVARCHAR(128) = "<YourLoginName>"; #';
-PRINT '# на реальное имя логина, например: #';
-PRINT '# DECLARE @LoginName NVARCHAR(128) = "MyDomain\MyUser"; #';
-PRINT '# или #';
-PRINT '# DECLARE @LoginName NVARCHAR(128) = "SQL_Login"; #';
-PRINT '# #';
-PRINT '####################################################################';
-RETURN;
+    PRINT '####################################################################';
+    PRINT '#                                                                  #';
+    PRINT '#  ERROR: Login name not specified!                                #';
+    PRINT '#                                                                  #';
+    PRINT '#  Please replace "<YourLoginName>" in the line:                   #';
+    PRINT '#  DECLARE @LoginName NVARCHAR(128) = "<YourLoginName>";           #';
+    PRINT '#  with an actual login name, for example:                         #';
+    PRINT '#  DECLARE @LoginName NVARCHAR(128) = "MyDomain\MyUser";           #';
+    PRINT '#  or                                                              #';
+    PRINT '#  DECLARE @LoginName NVARCHAR(128) = "SQL_Login";                 #';
+    PRINT '#                                                                  #';
+    PRINT '#  Then re-execute the script.                                     #';
+    PRINT '#                                                                  #';
+    PRINT '####################################################################';
+    RETURN; -- Stop script execution
 END
  
 -- Header information
