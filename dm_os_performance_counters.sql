@@ -1,16 +1,16 @@
 SELECT
-object_name,
-counter_name,
-instance_name,
-CASE counter_type
-WHEN 65792 THEN 'PERF_COUNTER_RAWCOUNT (Простое целочисленное значение)'
-WHEN 537003264 THEN 'PERF_COUNTER_LARGE_RAWCOUNT (64-битное целочисленное значение)'
-WHEN 272696320 THEN 'PERF_COUNTER_BULK_COUNT (Количество событий в секунду)'
-WHEN 272696576 THEN 'PERF_AVERAGE_BULK (Среднее значение на операцию)'
-WHEN 1073874176 THEN 'PERF_COUNTER_COUNTER (Частота событий в секунду)'
-WHEN 1073939712 THEN 'PERF_100NSEC_TIMER (Время выполнения в 100-наносекундных интервалах)'
-ELSE 'Неизвестный тип: ' + CAST(counter_type AS VARCHAR)
-END AS counter_type_description,
+RTRIM(object_name) AS [object_name],
+RTRIM(counter_name) AS [counter_name],
+RTRIM(instance_name) AS [instance_name],
+CASE cntr_type
+WHEN 65792 THEN 'PERF_COUNTER_RAWCOUNT' -- Простое целочисленное значение
+WHEN 537003264 THEN 'PERF_COUNTER_LARGE_RAWCOUNT' -- 64-битное целочисленное значение
+WHEN 272696320 THEN 'PERF_COUNTER_BULK_COUNT' -- Количество событий в секунду
+WHEN 272696576 THEN 'PERF_AVERAGE_BULK' -- Среднее значение на операцию
+WHEN 1073874176 THEN 'PERF_COUNTER_COUNTER' -- Частота событий в секунду
+WHEN 1073939712 THEN 'PERF_100NSEC_TIMER' -- Время выполнения в 100-наносекундных интервалах
+ELSE 'Unknown type: ' + CAST(cntr_type AS VARCHAR) -- Неизвестный тип
+END AS cntr_type_desc,
 cntr_value AS counter_value
 FROM
 sys.dm_os_performance_counters;
