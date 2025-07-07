@@ -1,6 +1,5 @@
 SELECT
 t.transaction_id,
-s.session_id,
 DB_NAME(dtr.database_id) AS database_name,
 s.session_id,
 s.login_name,
