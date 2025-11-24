@@ -72,12 +72,17 @@ DB_NAME(m.database_id) AS [db_name],
 m.physical_name AS [file_name],
 a.size_on_disk_bytes - b.size_on_disk_bytes AS [size_change_bytes],
 a.num_of_reads - b.num_of_reads AS [num_of_reads],
-a.num_of_bytes_read - b.num_of_bytes_read AS [num_of_bytes_read],
 a.num_of_writes - b.num_of_writes AS [num_of_writes],
-a.num_of_bytes_written - b.num_of_bytes_written AS [num_of_bytes_written],
-a.io_stall_read_ms - b.io_stall_read_ms AS [io_stall_read_ms],
-a.io_stall_write_ms - b.io_stall_write_ms AS [io_stall_write_ms],
-a.io_stall - b.io_stall AS [io_stall_ms],
+--a.num_of_bytes_read - b.num_of_bytes_read AS [num_of_bytes_read],
+--a.num_of_bytes_written - b.num_of_bytes_written AS [num_of_bytes_written],
+--a.io_stall_read_ms - b.io_stall_read_ms AS [io_stall_read_ms],
+--a.io_stall_write_ms - b.io_stall_write_ms AS [io_stall_write_ms],
+--a.io_stall - b.io_stall AS [io_stall_ms],
+(a.num_of_bytes_read - b.num_of_bytes_read) / 1024.0 / 1024.0 AS [mb_read],
+(a.num_of_bytes_written - b.num_of_bytes_written) / 1024.0 / 1024.0 AS [mb_written],
+IIF((a.num_of_reads - b.num_of_reads) = 0, 0, (a.io_stall_read_ms - b.io_stall_read_ms) / (a.num_of_reads - b.num_of_reads)) AS [avg_read_latency_ms],
+IIF((a.num_of_writes - b.num_of_writes) = 0, 0, (a.io_stall_write_ms - b.io_stall_write_ms) / (a.num_of_writes - b.num_of_writes)) AS [avg_write_latency_ms],
+IIF((a.num_of_writes - b.num_of_writes) = 0, 0, (a.io_stall_read_ms - b.io_stall_read_ms + a.io_stall_write_ms - b.io_stall_write_ms) / (a.num_of_reads - b.num_of_reads + a.num_of_writes - b.num_of_writes)) AS [avg_rw_latency_ms],
 a.sample_ms - b.sample_ms AS [sample_ms]
 FROM @io_stats_history a
 INNER JOIN @io_stats_history_prev b ON a.database_id = b.database_id AND a.file_id = b.file_id
@@ -85,4 +90,4 @@ INNER JOIN sys.master_files m ON a.database_id = m.database_id AND a.file_id = m
 WHERE 1 = 1
 AND (a.num_of_reads - b.num_of_reads) + (a.num_of_writes - b.num_of_writes) + (a.io_stall - b.io_stall) <> 0
 AND m.database_id > 4
-ORDER BY io_stall_ms DESC;
+ORDER BY [avg_rw_latency_ms] DESC;
