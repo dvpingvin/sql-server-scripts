@@ -1,3 +1,10 @@
+-- Смотрим, что вообще есть
+SELECT s.name, st.target_name, /* s.total_bytes_generated / 1048576 AS total_mb_generated, st.bytes_written / 1048576 AS mb_written, s.total_target_memory / 1048576 AS total_target_mb, */
+CAST(st.target_data AS XML).value('(EventFileTarget/File/@name)[1]', 'NVARCHAR(1000)') AS target_xml_path,
+CAST(st.target_data AS XML) AS target_xml
+FROM sys.dm_xe_sessions s
+RIGHT JOIN sys.dm_xe_session_targets st ON s.address = st.event_session_address
+
 /* 
 -- Загрузка данных из ring_buffer (то же самое содержится в *.xel)
 DROP TABLE IF EXISTS #tmp_xe_event_data;
