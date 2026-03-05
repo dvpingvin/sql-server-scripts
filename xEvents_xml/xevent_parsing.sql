@@ -130,6 +130,54 @@ AND object_name IN (
     'cluster_health_ring_buffer_recorded'                    -- Состояние кластера
 */
 
+-- Парсинг error_reported
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="error_number"]/value)[1]', 'INT') AS error_number,
+    CAST(event_data AS XML).value('(/event/data[@name="severity"]/value)[1]', 'INT') AS severity,
+    CAST(event_data AS XML).value('(/event/data[@name="state"]/value)[1]', 'INT') AS state,
+    CAST(event_data AS XML).value('(/event/data[@name="user_defined"]/value)[1]', 'BIT') AS user_defined,
+    CAST(event_data AS XML).value('(/event/data[@name="category"]/value)[1]', 'INT') AS category,
+    CAST(event_data AS XML).value('(/event/data[@name="category"]/text)[1]', 'NVARCHAR(50)') AS category_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="destination"]/value)[1]', 'NVARCHAR(50)') AS destination,
+    CAST(event_data AS XML).value('(/event/data[@name="destination"]/text)[1]', 'NVARCHAR(50)') AS destination_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="is_intercepted"]/value)[1]', 'BIT') AS is_intercepted,
+    CAST(event_data AS XML).value('(/event/data[@name="message"]/value)[1]', 'NVARCHAR(MAX)') AS message,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'error_reported'
+ORDER BY event_timestamp_utc
+
+-- Парсинг auto_stats
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="database_id"]/value)[1]', 'INT') AS database_id,
+    CAST(event_data AS XML).value('(/event/data[@name="object_id"]/value)[1]', 'BIGINT') AS object_id,
+    CAST(event_data AS XML).value('(/event/data[@name="index_id"]/value)[1]', 'INT') AS index_id,
+    CAST(event_data AS XML).value('(/event/data[@name="job_id"]/value)[1]', 'INT') AS job_id,
+    CAST(event_data AS XML).value('(/event/data[@name="job_type"]/value)[1]', 'INT') AS job_type,
+    CAST(event_data AS XML).value('(/event/data[@name="job_type"]/text)[1]', 'NVARCHAR(50)') AS job_type_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="status"]/value)[1]', 'INT') AS status,
+    CAST(event_data AS XML).value('(/event/data[@name="status"]/text)[1]', 'NVARCHAR(100)') AS status_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="incremental"]/value)[1]', 'BIT') AS incremental,
+    CAST(event_data AS XML).value('(/event/data[@name="async"]/value)[1]', 'BIT') AS async,
+    CAST(event_data AS XML).value('(/event/data[@name="max_dop"]/value)[1]', 'INT') AS max_dop,
+    CAST(event_data AS XML).value('(/event/data[@name="sample_percentage"]/value)[1]', 'BIGINT') AS sample_percentage,
+    CAST(event_data AS XML).value('(/event/data[@name="duration"]/value)[1]', 'BIGINT') AS duration,
+    CAST(event_data AS XML).value('(/event/data[@name="retries"]/value)[1]', 'INT') AS retries,
+    CAST(event_data AS XML).value('(/event/data[@name="success"]/value)[1]', 'BIT') AS success,
+    CAST(event_data AS XML).value('(/event/data[@name="last_error"]/value)[1]', 'INT') AS last_error,
+    CAST(event_data AS XML).value('(/event/data[@name="count"]/value)[1]', 'INT') AS count,
+    CAST(event_data AS XML).value('(/event/data[@name="statistics_list"]/value)[1]', 'NVARCHAR(MAX)') AS statistics_list,
+    CAST(event_data AS XML).value('(/event/data[@name="database_name"]/value)[1]', 'NVARCHAR(128)') AS database_name,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'auto_stats'
+ORDER BY event_timestamp_utc
+
+
 -- Парсинг scheduler_monitor_system_health_ring_buffer_recorded
 SELECT 
     -- Данные из элементов data
@@ -207,6 +255,176 @@ SELECT
 FROM #tmp_xe_event_data
 WHERE object_name = 'loggerEvent'
 ORDER BY event_timestamp_utc
+
+
+-- Парсинг tx_commit_abort_stats
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="database_id"]/value)[1]', 'INT') AS database_id,
+    CAST(event_data AS XML).value('(/event/data[@name="is_adr_enabled"]/value)[1]', 'BIT') AS is_adr_enabled,
+    CAST(event_data AS XML).value('(/event/data[@name="is_adr_disabled_by_design"]/value)[1]', 'BIT') AS is_adr_disabled_by_design,
+    CAST(event_data AS XML).value('(/event/data[@name="is_adr_disabled_by_traceflag"]/value)[1]', 'BIT') AS is_adr_disabled_by_traceflag,
+    CAST(event_data AS XML).value('(/event/data[@name="tx_non_adr_count"]/value)[1]', 'BIGINT') AS tx_non_adr_count,
+    CAST(event_data AS XML).value('(/event/data[@name="tx_commit_count"]/value)[1]', 'BIGINT') AS tx_commit_count,
+    CAST(event_data AS XML).value('(/event/data[@name="short_tx_rollback_count"]/value)[1]', 'BIGINT') AS short_tx_rollback_count,
+    CAST(event_data AS XML).value('(/event/data[@name="long_tx_rollback_count"]/value)[1]', 'BIGINT') AS long_tx_rollback_count,
+    CAST(event_data AS XML).value('(/event/data[@name="adr_tx_rollback_count"]/value)[1]', 'BIGINT') AS adr_tx_rollback_count,
+    CAST(event_data AS XML).value('(/event/data[@name="nest_aborted_count"]/value)[1]', 'BIGINT') AS nest_aborted_count,
+    CAST(event_data AS XML).value('(/event/data[@name="savepoint_aborted_count"]/value)[1]', 'BIGINT') AS savepoint_aborted_count,
+    CAST(event_data AS XML).value('(/event/data[@name="nest_id_from_off_row_count"]/value)[1]', 'BIGINT') AS nest_id_from_off_row_count,
+    CAST(event_data AS XML).value('(/event/data[@name="lr_btree_count"]/value)[1]', 'BIGINT') AS lr_btree_count,
+    CAST(event_data AS XML).value('(/event/data[@name="lr_heap_count"]/value)[1]', 'BIGINT') AS lr_heap_count,
+    CAST(event_data AS XML).value('(/event/data[@name="lr_blob_count"]/value)[1]', 'BIGINT') AS lr_blob_count,
+    CAST(event_data AS XML).value('(/event/data[@name="updates_on_top_aborted_rows_count"]/value)[1]', 'BIGINT') AS updates_on_top_aborted_rows_count,
+    CAST(event_data AS XML).value('(/event/data[@name="tx_rollback_count"]/value)[1]', 'BIGINT') AS tx_rollback_count,
+    CAST(event_data AS XML).value('(/event/data[@name="current_abort_count"]/value)[1]', 'INT') AS current_abort_count,
+    CAST(event_data AS XML).value('(/event/data[@name="persisted_version_store_kb"]/value)[1]', 'BIGINT') AS persisted_version_store_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="tx_started_long_time_ago"]/value)[1]', 'BIGINT') AS tx_started_long_time_ago,
+    CAST(event_data AS XML).value('(/event/data[@name="multiple_version_from_nest_tran"]/value)[1]', 'BIGINT') AS multiple_version_from_nest_tran,
+    CAST(event_data AS XML).value('(/event/data[@name="is_elastic_pool_db"]/value)[1]', 'BIGINT') AS is_elastic_pool_db,
+    CAST(event_data AS XML).value('(/event/data[@name="is_mtvc_enabled"]/value)[1]', 'BIGINT') AS is_mtvc_enabled,
+    CAST(event_data AS XML).value('(/event/data[@name="do_only_lr_count"]/value)[1]', 'BIGINT') AS do_only_lr_count,
+    CAST(event_data AS XML).value('(/event/data[@name="is_mtvc_within_db_enabled"]/value)[1]', 'BIGINT') AS is_mtvc_within_db_enabled,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'tx_commit_abort_stats'
+ORDER BY event_timestamp_utc
+
+-- Парсинг login_protocol_count
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="protocol"]/value)[1]', 'NVARCHAR(100)') AS protocol,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'login_protocol_count'
+ORDER BY event_timestamp_utc
+
+-- Парсинг cardinality_estimation_version_usage
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="default_ce_count"]/value)[1]', 'INT') AS default_ce_count,
+    CAST(event_data AS XML).value('(/event/data[@name="legacy_ce_from_queryhint_count"]/value)[1]', 'INT') AS legacy_ce_from_queryhint_count,
+    CAST(event_data AS XML).value('(/event/data[@name="default_ce_from_queryhint_count"]/value)[1]', 'INT') AS default_ce_from_queryhint_count,
+    CAST(event_data AS XML).value('(/event/data[@name="conflict_in_ce_request_count"]/value)[1]', 'INT') AS conflict_in_ce_request_count,
+    CAST(event_data AS XML).value('(/event/data[@name="legacy_ce_from_dbscopedconfig_count"]/value)[1]', 'INT') AS legacy_ce_from_dbscopedconfig_count,
+    CAST(event_data AS XML).value('(/event/data[@name="legacy_ce_from_global_tf_count"]/value)[1]', 'INT') AS legacy_ce_from_global_tf_count,
+    CAST(event_data AS XML).value('(/event/data[@name="legacy_ce_from_session_tf_count"]/value)[1]', 'INT') AS legacy_ce_from_session_tf_count,
+    CAST(event_data AS XML).value('(/event/data[@name="ce_atleast120_from_global_tf_count"]/value)[1]', 'INT') AS ce_atleast120_from_global_tf_count,
+    CAST(event_data AS XML).value('(/event/data[@name="ce_atleast120_from_session_tf_count"]/value)[1]', 'INT') AS ce_atleast120_from_session_tf_count,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'cardinality_estimation_version_usage'
+ORDER BY event_timestamp_utc
+
+-- Парсинг query_store_db_diagnostics
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="database_id"]/value)[1]', 'INT') AS database_id,
+    CAST(event_data AS XML).value('(/event/data[@name="query_count"]/value)[1]', 'INT') AS query_count,
+    CAST(event_data AS XML).value('(/event/data[@name="queries_used_last_hour"]/value)[1]', 'INT') AS queries_used_last_hour,
+    CAST(event_data AS XML).value('(/event/data[@name="queries_used_last_day"]/value)[1]', 'INT') AS queries_used_last_day,
+    CAST(event_data AS XML).value('(/event/data[@name="undecided_query_count"]/value)[1]', 'INT') AS undecided_query_count,
+    CAST(event_data AS XML).value('(/event/data[@name="query_text_count"]/value)[1]', 'INT') AS query_text_count,
+    CAST(event_data AS XML).value('(/event/data[@name="plan_count"]/value)[1]', 'INT') AS plan_count,
+    CAST(event_data AS XML).value('(/event/data[@name="plans_used_last_hour"]/value)[1]', 'INT') AS plans_used_last_hour,
+    CAST(event_data AS XML).value('(/event/data[@name="plans_used_last_day"]/value)[1]', 'INT') AS plans_used_last_day,
+    CAST(event_data AS XML).value('(/event/data[@name="context_settings_memory_usage_kb"]/value)[1]', 'BIGINT') AS context_settings_memory_usage_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="runtime_stats_memory_usage_kb"]/value)[1]', 'BIGINT') AS runtime_stats_memory_usage_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="pending_persistance_memory_usage_kb"]/value)[1]', 'BIGINT') AS pending_persistance_memory_usage_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="db_state_actual"]/value)[1]', 'INT') AS db_state_actual,
+    CAST(event_data AS XML).value('(/event/data[@name="db_state_desired"]/value)[1]', 'INT') AS db_state_desired,
+    CAST(event_data AS XML).value('(/event/data[@name="query_store_read_only_reason"]/value)[1]', 'INT') AS query_store_read_only_reason,
+    CAST(event_data AS XML).value('(/event/data[@name="flush_interval_seconds"]/value)[1]', 'INT') AS flush_interval_seconds,
+    CAST(event_data AS XML).value('(/event/data[@name="interval_length_minutes"]/value)[1]', 'INT') AS interval_length_minutes,
+    CAST(event_data AS XML).value('(/event/data[@name="max_size_mb"]/value)[1]', 'INT') AS max_size_mb,
+    CAST(event_data AS XML).value('(/event/data[@name="stale_query_threshold_days"]/value)[1]', 'INT') AS stale_query_threshold_days,
+    CAST(event_data AS XML).value('(/event/data[@name="max_plans_per_query"]/value)[1]', 'INT') AS max_plans_per_query,
+    CAST(event_data AS XML).value('(/event/data[@name="current_stmt_hash_map_size_kb"]/value)[1]', 'BIGINT') AS current_stmt_hash_map_size_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="max_stmt_hash_map_size_kb"]/value)[1]', 'BIGINT') AS max_stmt_hash_map_size_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="current_buffered_items_size_kb"]/value)[1]', 'BIGINT') AS current_buffered_items_size_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="max_buffered_items_size_kb"]/value)[1]', 'BIGINT') AS max_buffered_items_size_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="max_memory_available_kb"]/value)[1]', 'BIGINT') AS max_memory_available_kb,
+    CAST(event_data AS XML).value('(/event/data[@name="undecided_queries_window_duration_minutes"]/value)[1]', 'INT') AS undecided_queries_window_duration_minutes,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_mode"]/value)[1]', 'INT') AS capture_policy_mode,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_mode"]/text)[1]', 'NVARCHAR(50)') AS capture_policy_mode_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_execution_count"]/value)[1]', 'INT') AS capture_policy_execution_count,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_total_compile_cpu_ms"]/value)[1]', 'BIGINT') AS capture_policy_total_compile_cpu_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_total_execution_cpu_ms"]/value)[1]', 'BIGINT') AS capture_policy_total_execution_cpu_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="capture_policy_stale_threshold_hours"]/value)[1]', 'INT') AS capture_policy_stale_threshold_hours,
+    CAST(event_data AS XML).value('(/event/data[@name="size_based_cleanup_mode"]/value)[1]', 'INT') AS size_based_cleanup_mode,
+    CAST(event_data AS XML).value('(/event/data[@name="size_based_cleanup_mode"]/text)[1]', 'NVARCHAR(50)') AS size_based_cleanup_mode_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="size_based_cleanup_percent_trigger"]/value)[1]', 'INT') AS size_based_cleanup_percent_trigger,
+    CAST(event_data AS XML).value('(/event/data[@name="size_based_cleanup_percent_target"]/value)[1]', 'INT') AS size_based_cleanup_percent_target,
+    CAST(event_data AS XML).value('(/event/data[@name="wait_stats_capture_mode"]/value)[1]', 'INT') AS wait_stats_capture_mode,
+    CAST(event_data AS XML).value('(/event/data[@name="wait_stats_capture_mode"]/text)[1]', 'NVARCHAR(50)') AS wait_stats_capture_mode_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="fast_path_optimization_mode"]/value)[1]', 'INT') AS fast_path_optimization_mode,
+    CAST(event_data AS XML).value('(/event/data[@name="fast_path_optimization_mode"]/text)[1]', 'NVARCHAR(50)') AS fast_path_optimization_mode_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="pending_message_count"]/value)[1]', 'BIGINT') AS pending_message_count,
+    CAST(event_data AS XML).value('(/event/data[@name="messaging_memory_used_mb"]/value)[1]', 'BIGINT') AS messaging_memory_used_mb,
+    CAST(event_data AS XML).value('(/event/data[@name="messaging_discarded_message_count"]/value)[1]', 'BIGINT') AS messaging_discarded_message_count,
+    CAST(event_data AS XML).value('(/event/data[@name="messaging_internal_max_threshold"]/value)[1]', 'BIGINT') AS messaging_internal_max_threshold,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'query_store_db_diagnostics'
+ORDER BY event_timestamp_utc
+
+-- Парсинг server_memory_change
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="memory_change"]/value)[1]', 'INT') AS memory_change,
+    CAST(event_data AS XML).value('(/event/data[@name="memory_change"]/text)[1]', 'NVARCHAR(50)') AS memory_change_desc,
+    CAST(event_data AS XML).value('(/event/data[@name="new_memory_size_mb"]/value)[1]', 'INT') AS new_memory_size_mb,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'server_memory_change'
+ORDER BY event_timestamp_utc
+
+-- Парсинг sequence_function_used
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="execution_details"]/value)[1]', 'NVARCHAR(100)') AS execution_details,
+    -- Данные из элементов action
+    CAST(event_data AS XML).value('(/event/action[@name="database_id"]/value)[1]', 'INT') AS database_id,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'sequence_function_used'
+ORDER BY event_timestamp_utc
+
+
+-- Парсинг recovery_checkpoint_stats
+SELECT 
+    -- Данные из элементов data
+    CAST(event_data AS XML).value('(/event/@timestamp)[1]', 'DATETIME2') AS event_timestamp_utc,
+    CAST(event_data AS XML).value('(/event/data[@name="database_id"]/value)[1]', 'INT') AS database_id,
+    CAST(event_data AS XML).value('(/event/data[@name="dirty_page_mgr_config"]/value)[1]', 'INT') AS dirty_page_mgr_config,
+    CAST(event_data AS XML).value('(/event/data[@name="target_recovery_time_sec"]/value)[1]', 'INT') AS target_recovery_time_sec,
+    CAST(event_data AS XML).value('(/event/data[@name="dirty_page_count"]/value)[1]', 'BIGINT') AS dirty_page_count,
+    CAST(event_data AS XML).value('(/event/data[@name="dirty_page_read_time_ms"]/value)[1]', 'BIGINT') AS dirty_page_read_time_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="dirty_page_target_time_ms"]/value)[1]', 'BIGINT') AS dirty_page_target_time_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="dplist_lock_backoffs_per_min"]/value)[1]', 'BIGINT') AS dplist_lock_backoffs_per_min,
+    CAST(event_data AS XML).value('(/event/data[@name="dplist_lock_collisions_per_min"]/value)[1]', 'BIGINT') AS dplist_lock_collisions_per_min,
+    CAST(event_data AS XML).value('(/event/data[@name="dplist_lock_spins_per_collision"]/value)[1]', 'BIGINT') AS dplist_lock_spins_per_collision,
+    CAST(event_data AS XML).value('(/event/data[@name="is_acceptlog_mode"]/value)[1]', 'BIT') AS is_acceptlog_mode,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_data_read_time_estimate_ms"]/value)[1]', 'BIGINT') AS recovery_data_read_time_estimate_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_log_bytes"]/value)[1]', 'BIGINT') AS recovery_log_bytes,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_log_read_time_estimate_ms"]/value)[1]', 'BIGINT') AS recovery_log_read_time_estimate_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_log_target_time_ms"]/value)[1]', 'BIGINT') AS recovery_log_target_time_ms,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_time_estimate_sec"]/value)[1]', 'BIGINT') AS recovery_time_estimate_sec,
+    CAST(event_data AS XML).value('(/event/data[@name="recovery_writer_group_queued_ios"]/value)[1]', 'BIGINT') AS recovery_writer_group_queued_ios,
+    CAST(event_data AS XML).value('(/event/data[@name="current_lsn"]/value)[1]', 'NVARCHAR(50)') AS current_lsn,
+    CAST(event_data AS XML).value('(/event/data[@name="current_oldest_page_lsn"]/value)[1]', 'NVARCHAR(50)') AS current_oldest_page_lsn,
+    CAST(event_data AS XML).value('(/event/data[@name="database_name"]/value)[1]', 'NVARCHAR(128)') AS database_name,
+    CAST(event_data AS XML) AS xml -- Полный XML для отладки
+FROM #tmp_xe_event_data
+WHERE object_name = 'recovery_checkpoint_stats'
+ORDER BY event_timestamp_utc
+
 
 -- Парсинг sp_server_diagnostics_component_result
 SELECT 
